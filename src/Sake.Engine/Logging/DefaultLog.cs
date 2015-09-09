@@ -23,7 +23,7 @@ namespace Sake.Engine.Logging
 
         public void Error(object value)
         {
-            _settings.Output.WriteLine("\x1b-\u20cfail\x1b-\x07: {0}", value);
+            _settings.Output.WriteLine("\x1b-\u000cfail\x1b-\x07: {0}", value);
         }
 
         public void Verbose(object value)

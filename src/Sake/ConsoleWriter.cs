@@ -6,26 +6,41 @@ namespace Sake
 {
     internal class ConsoleWriter : TextWriter
     {
+        private readonly object _consoleLock = new object();
+
         public override Encoding Encoding
         {
             get { return Console.OutputEncoding; }
         }
-         
+
         public override void Write(char[] buffer, int offset, int count)
         {
             var value = new string(buffer, offset, count);
             var index = 0;
-            for (; ; )
+
+            lock (_consoleLock)
             {
-                var next = value.IndexOf("\x1b-", index);
-                if (next == -1)
+                var originalColor = Console.ForegroundColor;
+
+                try
                 {
-                    Console.Write(value.Substring(index));
-                    return;
+                    for (;;)
+                    {
+                        var next = value.IndexOf("\x1b-", index);
+                        if (next == -1)
+                        {
+                            Console.Write(value.Substring(index));
+                            return;
+                        }
+                        Console.Write(value.Substring(index, next - index));
+                        index = next + 3;
+                        Console.ForegroundColor = (ConsoleColor)value[next + 2];
+                    }
                 }
-                Console.Write(value.Substring(index, next - index));
-                index = next + 3;
-                Console.ForegroundColor=(ConsoleColor)value[next + 2];
+                finally
+                {
+                    Console.ForegroundColor = originalColor;
+                }
             }
         }
     }
